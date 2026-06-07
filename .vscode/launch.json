@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run mcp2mqtt",
+            "type": "python",
+            "request": "launch",
+            "module": "mcp2mqtt",
+            "args": [
+                "--config",
+                "config.yaml"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

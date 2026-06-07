@@ -1,0 +1,36 @@
+services:
+  mcp2mqtt:
+    build: .
+    container_name: mcp2mqtt
+    restart: unless-stopped
+    profiles: ["run"]
+    volumes:
+      # 挂载本地修改后的源码覆盖 pip 安装的版本（无需重新构建镜像）
+      - ./src/mcp2mqtt:/usr/local/lib/python3.11/site-packages/mcp2mqtt
+      # 挂载配置文件
+      - ./config.yaml:/app/config.yaml
+    command: ["python", "-m", "mcp2mqtt.server"]
+
+  mcphub:
+    image: samanhappy/mcphub:latest
+    container_name: mcphub
+    restart: unless-stopped    
+    networks:
+      - mcp-net
+    ports:
+      - "9000:3000"
+    volumes:
+      - /vol1/docker/home/mcphub:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /vol1/1000/pro/mcp2mqtt:/vol1/1000/pro/mcp2mqtt
+    environment:
+      - TZ=Asia/Shanghai
+      - MCP_HUB_LOG_LEVEL=debug
+    # 添加容器清理钩子
+    labels:
+      - "cleanup.on.stop=true"
+
+networks:
+  mcp-net:
+    external: true
