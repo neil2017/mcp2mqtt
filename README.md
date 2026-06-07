@@ -80,6 +80,26 @@ mcp2mqtt 是一个将物联网设备接入AI大模型的项目，它通过 Model
   - 灵活的提示词系统
   - 通过MQTT实现命令的发布与响应
 
+## 实现功能清单
+
+下面逐项列出本项目已实现的功能点，便于快速浏览与文档引用：
+
+- **MQTT 通信**：支持发布/订阅、QoS、主题过滤与消息路由。
+- **MCP 协议集成**：实现 Model Context Protocol，用于工具调用与资源管理。
+- **通用工具框架**：工具通过 `response_format` 模板统一处理响应（示例：`set_pwm`、`get_pico_info`、`led_control`）。
+- **`tuya_control` 工具**：用于控制或查询楼梯灯（`state=on/off/query`），可配置 `mqtt_topic` 与 `response_topic`。
+- **查询模式支持**：`state=query` 模式会尝试从 `response_topic` 读取当前状态（优先 retained 消息）。
+- **先发后订阅策略**：发送命令后再订阅响应主题，避免读取到旧的 retained 状态。
+- **MQTT Broker 诊断**：新增 `diagnose_mqtt_broker()`，自动检测 DNS 和 TCP 端口连通性以定位问题。
+- **可配置超时**：新增 `mqtt_timeout`（默认 10 秒），可在 `config.yaml` 中自定义。
+- **统一响应格式**：消除工具间硬编码，所有工具走 `response_format` 模板解析。
+- **设备模拟器**：`tests/responder.py` 用于本地模拟设备或 HA 行为，便于集成测试。
+- **测试完善**：新增多项测试用例（含 `test_tuya_control_query_mode`、诊断测试等）。
+- **部署优化**：`docker-compose.yml` 支持卷挂载，便于在不重建镜像的情况下更新代码。
+- **文档与示例**：提供详细 `config.yaml` 示例、客户端接入说明及 `tuya_control` 的控制/查询示例（已加入 README）。
+- **版本管理**：已创建并推送初始 tag `v0.1.0`，可用于发布管理。
+
+
 ## 配置说明
 
 ### MQTT配置
