@@ -292,6 +292,52 @@ python tests/responder.py
 
 你应该能看到模拟器正在运行并已连接到 MQTT 服务器的输出信息。
 
+### tuya_control 工具测试示例
+
+下面示例展示如何在开发环境中测试 `tuya_control` 工具（控制楼梯灯开关 / 查询状态）。示例基于项目默认 `config.yaml` 中的 `tuya_control` 配置：
+
+- mqtt_topic: `ha/light/lou_ti_deng/set`
+- response_topic: `ha/light/lou_ti_deng/state`
+
+先决条件：
+- 已启动 `tests/responder.py`（或有可用的 MQTT Broker 与 HA 主题模拟器）。
+
+1) 控制（打开/关闭）示例 — 通过直接调用 server 的工具接口：
+
+```python
+from mcp2mqtt import server
+import asyncio
+
+# 发送打开命令
+res = asyncio.run(server.handle_call_tool('tuya_control', {'state': 'on'}))
+print(res[0].text)  # 期望输出类似 'on' 或 '开'
+
+# 发送关闭命令
+res = asyncio.run(server.handle_call_tool('tuya_control', {'state': 'off'}))
+print(res[0].text)  # 期望输出类似 'off' 或 '关'
+```
+
+2) 查询状态（state=query）示例：
+
+```python
+from mcp2mqtt import server
+import asyncio
+
+# 查询当前状态（query 模式通常不发送控制指令，而是读取 response_topic 的 retained 或即时状态）
+res = asyncio.run(server.handle_call_tool('tuya_control', {'state': 'query'}))
+print(res[0].text)  # 期望包含 'on'/'off' 或中文描述
+```
+
+3) 使用 MQTT 手工验证（模拟 HA 将状态写回 `response_topic`）：
+
+```bash
+# 将状态写回到 HA 的 state 主题，模拟设备/HA 的反馈
+mosquitto_pub -h broker.emqx.io -t "ha/light/lou_ti_deng/state" -m "on"
+```
+
+说明：`tuya_control` 的 `state=query` 模式会尝试从 `response_topic` 获取当前状态（优先读取 retained 消息）；控制模式（`on`/`off`）会向 `mqtt_topic` 发送对应文本。
+
+
 ### 启动客户端Claude 桌面版或Cline
 <div align="center">
     <img src="docs/images/test_output.png" alt="Cline Configuration Example" width="600"/>
